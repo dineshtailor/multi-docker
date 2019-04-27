@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dineshtailor/react-test -f client/Dockerfile.dev ./client
+
+script:
+  - docker run dineshtailor/react-test npm run test -- --coverage
+after_success:
+  - docker build -t dineshtailor/multi-client ./client
+  - docker build -t dineshtailor/multi-nginx ./nginx
+  - docker build -t dineshtailor/multi-server ./server
+  - docker build -t dineshtailor/multi-worker ./worker
+        #login into docker client
+  - echo "DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push dineshtailor/multi-client
+  - docker push dineshtailor/multi-nginx
+  - docker push dineshtailor/multi-server
+  - docker push dineshtailor/multi-worker
